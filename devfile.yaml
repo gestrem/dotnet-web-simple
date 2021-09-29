@@ -1,0 +1,70 @@
+apiVersion: 1.0.0
+metadata:
+  name: dot-net-api
+projects:
+  - name: dotnet-web-simple
+    source:
+      location: 'https://github.com/gestrem/dotnet-web-simple'
+      type: git
+      branch: netcoreapp3.1
+components:
+  - id: 42crunch/vscode-openapi/latest
+    type: chePlugin
+    registryUrl: 'https://opentlc-mgr-plugin-registry-builder.surge.sh/v3'
+  - id: redhat-developer/che-omnisharp-plugin/latest
+    type: chePlugin
+    alias: omnisharp
+  - id: redhat-developer/netcoredbg-theia-plugin/latest
+    type: chePlugin
+    alias: netcoredbg
+  - mountSources: true
+    endpoints:
+      - name: hello-endpoint
+        port: 5000
+    memoryLimit: 512Mi
+    type: dockerimage
+    volumes:
+      - name: nuget
+        containerPath: /home/jboss/.nuget
+    alias: dotnet
+    image: 'registry.redhat.io/codeready-workspaces/stacks-dotnet-rhel8@sha256:6ca14e5a94a98b15f39a353e533cf659b2b3937a86bd51af175dc3eadd8b80d5'
+  - id: redhat/vscode-xml/latest
+    type: chePlugin
+commands:
+  - name: 1. Update dependencies
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/dotnet-web-simple'
+        type: exec
+        command: dotnet restore
+        component: dotnet
+  - name: 2. Build
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/dotnet-web-simple'
+        type: exec
+        command: dotnet build
+        component: dotnet
+  - name: 3. Run
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/dotnet-web-simple'
+        type: exec
+        command: dotnet run
+        component: dotnet
+  - name: Launch .net web application in debug mode
+    actions:
+      - referenceContent: |
+          {
+            "version": "0.2.0",
+              "configurations": [
+                 {
+                    "type": "netcoredbg",
+                    "request": "launch",
+                    "program": "/projects/dotnet-web-simple/bin/Debug/netcoreapp3.1/web.dll",
+                    "args": [],
+                    "name": ".NET Core Launch (console)",
+                    "stopAtEntry": true,
+                    "preLaunchTask": "2. Build",
+                    "console": "internalConsole"
+                  }
+              ]
+          }
+        type: vscode-launch
