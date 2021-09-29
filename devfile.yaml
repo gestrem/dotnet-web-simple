@@ -6,7 +6,7 @@ projects:
     source:
       location: 'https://github.com/gestrem/dotnet-web-simple'
       type: git
-      branch: netcoreapp3.1
+      branch: master
 components:
   - id: 42crunch/vscode-openapi/latest
     type: chePlugin
